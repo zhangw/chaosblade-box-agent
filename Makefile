@@ -17,8 +17,8 @@ VERSION_PKG=github.com/chaosblade-io/chaos-agent/version
 
 GO_ENV=CGO_ENABLED=1
 GO_MODULE=GO111MODULE=on
-#GO_PROXY=GOPROXY=https://mirrors.aliyun.com/goproxy/
-GO=env $(GO_ENV) $(GO_MODULE) go
+GO_PROXY ?= GOPROXY=https://goproxy.cn,direct
+GO=env $(GO_ENV) $(GO_MODULE) $(GO_PROXY) go
 #GO_X_FLAGS=-X ${VERSION_PKG}.AgentVersion=$(AGENT_VERSION) -X '${VERSION_PKG}.Env=`uname -mv`' -X '${VERSION_PKG}.BuildTime=`date`'
 GO_FLAGS=-ldflags="-s -w"
 
