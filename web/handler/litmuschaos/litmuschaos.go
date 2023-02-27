@@ -38,7 +38,7 @@ import (
 	"k8s.io/client-go/rest"
 	k8symaml "sigs.k8s.io/yaml"
 
-	v1alpha1 "github.com/litmuschaos/chaos-operator/pkg/apis/litmuschaos/v1alpha1"
+	v1alpha1 "github.com/litmuschaos/chaos-operator/api/litmuschaos/v1alpha1"
 	chaosClient "github.com/litmuschaos/chaos-operator/pkg/client/clientset/versioned/typed/litmuschaos/v1alpha1"
 
 	"github.com/chaosblade-io/chaos-agent/conn/asyncreport"
@@ -109,7 +109,7 @@ func (lh *LitmusChaosHandler) destroyParamerAndExec(request *transport.Request) 
 }
 
 func (lh *LitmusChaosHandler) destroyExec(name, namespace string) *transport.Response {
-	err := lh.LitmusClientSet.ChaosEngines(namespace).Delete(name, &metaV1.DeleteOptions{})
+	err := lh.LitmusClientSet.ChaosEngines(namespace).Delete(context.TODO(), name, metaV1.DeleteOptions{})
 	if err != nil {
 		if !errors.IsNotFound(err) {
 			return transport.ReturnFail(transport.ServerError, fmt.Sprintf("litmus destroy engine failed, err: %s", err.Error()))
@@ -240,7 +240,7 @@ func (lh *LitmusChaosHandler) prepareLitmusExperiment(experimentType, experiment
 		return fmt.Errorf("experiment Unmarshal err. ", err.Error())
 	}
 
-	_, err = lh.LitmusClientSet.ChaosExperiments(namespace).Create(expriment)
+	_, err = lh.LitmusClientSet.ChaosExperiments(namespace).Create(context.TODO(), expriment, metaV1.CreateOptions{})
 	if errors.IsAlreadyExists(err) {
 		return nil
 	}
@@ -436,14 +436,14 @@ func (lh *LitmusChaosHandler) createEnginer(name, namespace, experimentName stri
 	chaosEnginer.Kind = ENGINE_KIND
 	chaosEnginer.APIVersion = LITMUS_CRD_VERSION
 
-	_, err := lh.LitmusClientSet.ChaosEngines(namespace).Create(chaosEnginer)
+	_, err := lh.LitmusClientSet.ChaosEngines(namespace).Create(context.TODO(), chaosEnginer, metaV1.CreateOptions{})
 	return err
 }
 
 func (lh *LitmusChaosHandler) handlerResult(name, namespace, experimentName string) (*v1alpha1.ChaosResult, error) {
 	chaosResultName := fmt.Sprintf("%s-%s", name, experimentName)
 
-	return lh.LitmusClientSet.ChaosResults(namespace).Get(chaosResultName, metaV1.GetOptions{})
+	return lh.LitmusClientSet.ChaosResults(namespace).Get(context.TODO(), chaosResultName, metaV1.GetOptions{})
 }
 
 //Download from oss
