@@ -59,7 +59,8 @@ func NewK8sClient() (*kubernetes.Clientset, error) {
 	if clusterConfig.Host != "" {
 		defaultClusterId = fmt.Sprintf("API_SERVER_%s", clusterConfig.Host)
 	}
-
+	clusterConfig.QPS = 50
+	clusterConfig.Burst = 100
 	options.Opts.SetClusterIdIfNotPresent(defaultClusterId)
 	clientset, err := kubernetes.NewForConfig(clusterConfig)
 	return clientset, err
