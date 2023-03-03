@@ -279,11 +279,30 @@ func (ch *ChaosbladeHandler) queryPreparationStatus(uid string) (*preparation, e
 	}
 }
 
+func trySanitize(result string) string {
+	ml := strings.Split(result, "\n")
+	if len(ml) > 1 {
+		return ml[len(ml)-2]
+	}
+	return result
+}
+
 // parse result to response
 func parseResult(result string) *transport.Response {
 	var response transport.Response
 	err := json.Unmarshal([]byte(result), &response)
 	if err != nil {
+		// 可能因为blade和agent版本不兼容的问题，result不一定是明确的json格式，比如
+		// ....://10.254.0.1:443/apis/cert-manager.io/v1beta1?timeout=32s\n{\"code\":200,\"success\":true,\"result\":\"deeb80098cfbfa57\"}\n
+		// 这里先做一个简单的兼容
+		sanitizedResult := trySanitize(result)
+		logrus.Debugf("the sanitized result:%s", sanitizedResult)
+		if sanitizedResult != result {
+			err = json.Unmarshal([]byte(sanitizedResult), &response)
+			if err == nil {
+				return &response
+			}
+		}
 		excludeInfo := "getcwd: cannot access parent directories"
 		errIndex := strings.Index(result, excludeInfo)
 		if errIndex < 0 {
